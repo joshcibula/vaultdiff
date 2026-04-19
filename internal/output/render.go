@@ -4,61 +4,49 @@ import (
 	"fmt"
 	"io"
 	"os"
+	"strings"
 
-	"github.com/fatih/color"
-
-	"vaultdiff/internal/diff"
+	"github.com/yourusername/vaultdiff/internal/diff"
 )
 
-// Format controls the output format of the diff.
-type Format string
-
-const (
-	FormatText Format = "text"
-	FormatJSON Format = "json"
-)
-
-// Renderer writes diff results to an output destination.
 type Renderer struct {
+	Format string
 	Writer io.Writer
-	Format Format
-	NoColor bool
 }
 
-// NewRenderer creates a Renderer writing to stdout.
-func NewRenderer(format Format, noColor bool) *Renderer {
-	if noColor {
-		color.NoColor = true
+func NewRenderer(format string) *Renderer {
+	return &Renderer{
+		Format: format,
+		Writer: os.Stdout,
 	}
-	return &Renderer{Writer: os.Stdout, Format: format, NoColor: noColor}
 }
 
-// Render writes the diff results using the configured format.
 func (r *Renderer) Render(results []diff.Result) error {
-	switch r.Format {
-	case FormatJSON:
-		return renderJSON(r.Writer, results)
+	switch strings.ToLower(r.Format) {
+	case "json":
+		return renderJSON(results, r.Writer)
+	case "markdown", "md":
+		return renderMarkdown(results, r.Writer)
+	case "text", "":
+		return renderText(results, r.Writer)
 	default:
-		return renderText(r.Writer, results)
+		return fmt.Errorf("unsupported output format: %s", r.Format)
 	}
 }
 
-func renderText(w io.Writer, results []diff.Result) error {
+func renderText(results []diff.Result, w io.Writer) error {
 	if len(results) == 0 {
 		fmt.Fprintln(w, "No differences found.")
 		return nil
 	}
-	add := color.New(color.FgGreen)
-	remove := color.New(color.FgRed)
-	modify := color.New(color.FgYellow)
 	for _, r := range results {
-		switch r.Change {
+		switch r.Status {
 		case diff.Added:
-			add.Fprintf(w, "+ %s: %v\n", r.Key, r.RightValue)
+			fmt.Fprintf(w, "+ [%s] %s = %s\n", r.Path, r.Key, r.RightValue)
 		case diff.Removed:
-			remove.Fprintf(w, "- %s: %v\n", r.Key, r.LeftValue)
+			fmt.Fprintf(w, "- [%s] %s = %s\n", r.Path, r.Key, r.LeftValue)
 		case diff.Modified:
-			modify.Fprintf(w, "~ %s: %v -> %v\n", r.Key, r.LeftValue, r.RightValue)
+			fmt.Fprintf(w, "~ [%s] %s: %s -> %s\n", r.Path, r.Key, r.LeftValue, r.RightValue)
 		}
 	}
 	return nil
