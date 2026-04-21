@@ -65,3 +65,8 @@ func (o TimeoutOptions) WithTotalTimeout(parent context.Context) (context.Contex
 	}
 	return context.WithTimeout(parent, o.TotalTimeout)
 }
+
+// IsZero reports whether all timeout values are zero (i.e. no timeouts configured).
+func (o TimeoutOptions) IsZero() bool {
+	return o.ListTimeout == 0 && o.ReadTimeout == 0 && o.TotalTimeout == 0
+}
