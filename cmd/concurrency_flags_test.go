@@ -48,3 +48,13 @@ func TestResolveConcurrencyOptions_ZeroFallsBackToDefault(t *testing.T) {
 		t.Errorf("expected positive workers, got %d", opts.Workers)
 	}
 }
+
+func TestResolveConcurrencyOptions_NegativeFallsBackToDefault(t *testing.T) {
+	cmd := newConcurrencyTestCmd()
+	_ = cmd.ParseFlags([]string{"--workers", "-1"})
+
+	opts := resolveConcurrencyOptions(cmd)
+	if opts.Workers <= 0 {
+		t.Errorf("expected positive workers for negative input, got %d", opts.Workers)
+	}
+}
