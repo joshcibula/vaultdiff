@@ -28,10 +28,7 @@ func NormalizeSecrets(secrets map[string]map[string]string, opts NormalizeOption
 	result := make(map[string]map[string]string, len(secrets))
 
 	for path, kv := range secrets {
-		normPath := path
-		if opts.StripTrailingSlash {
-			normPath = strings.TrimRight(normPath, "/")
-		}
+		normPath := normalizePath(path, opts)
 
 		normKV := make(map[string]string, len(kv))
 		for k, v := range kv {
@@ -51,6 +48,15 @@ func NormalizeSecrets(secrets map[string]map[string]string, opts NormalizeOption
 	}
 
 	return result
+}
+
+// normalizePath applies path-level normalization rules (e.g. stripping trailing
+// slashes) according to the provided options.
+func normalizePath(path string, opts NormalizeOptions) string {
+	if opts.StripTrailingSlash {
+		path = strings.TrimRight(path, "/")
+	}
+	return path
 }
 
 // collapseWhitespace replaces consecutive whitespace characters with a single space
