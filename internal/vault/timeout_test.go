@@ -83,3 +83,16 @@ func TestWithReadTimeout_ZeroNoDeadline(t *testing.T) {
 		t.Error("expected no deadline when ReadTimeout is zero")
 	}
 }
+
+func TestWithReadTimeout_Applied(t *testing.T) {
+	opts := TimeoutOptions{ReadTimeout: 10 * time.Second}
+	ctx, cancel := opts.WithReadTimeout(context.Background())
+	defer cancel()
+	deadline, ok := ctx.Deadline()
+	if !ok {
+		t.Fatal("expected deadline to be set")
+	}
+	if time.Until(deadline) > 10*time.Second || time.Until(deadline) <= 0 {
+		t.Errorf("unexpected deadline: %v", deadline)
+	}
+}
