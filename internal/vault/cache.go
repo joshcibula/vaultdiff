@@ -67,6 +67,21 @@ func (c *SecretCache) Invalidate(path string) {
 	delete(c.entries, path)
 }
 
+// Purge removes all expired entries from the cache and returns the number of entries removed.
+func (c *SecretCache) Purge() int {
+	c.mu.Lock()
+	defer c.mu.Unlock()
+
+	count := 0
+	for path, entry := range c.entries {
+		if entry.IsExpired() {
+			delete(c.entries, path)
+			count++
+		}
+	}
+	return count
+}
+
 // Len returns the number of entries currently in the cache.
 func (c *SecretCache) Len() int {
 	c.mu.RLock()
