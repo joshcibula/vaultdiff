@@ -55,3 +55,13 @@ func LoadSnapshot(filepath string) (*Snapshot, error) {
 	}
 	return &s, nil
 }
+
+// SecretCount returns the total number of key-value pairs across all secrets
+// in the snapshot.
+func (s *Snapshot) SecretCount() int {
+	count := 0
+	for _, fields := range s.Secrets {
+		count += len(fields)
+	}
+	return count
+}
