@@ -88,3 +88,16 @@ func (c *SecretCache) Len() int {
 	defer c.mu.RUnlock()
 	return len(c.entries)
 }
+
+// Paths returns a slice of all paths currently held in the cache,
+// including entries that may have expired but not yet been purged.
+func (c *SecretCache) Paths() []string {
+	c.mu.RLock()
+	defer c.mu.RUnlock()
+
+	paths := make([]string, 0, len(c.entries))
+	for path := range c.entries {
+		paths = append(paths, path)
+	}
+	return paths
+}
