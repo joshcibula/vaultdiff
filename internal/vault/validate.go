@@ -77,3 +77,13 @@ func IsValidationError(err error) bool {
 	var ve *ValidationError
 	return errors.As(err, &ve)
 }
+
+// ViolationCount returns the number of violations in err if it is a
+// *ValidationError, or 0 if err is nil or a different error type.
+func ViolationCount(err error) int {
+	var ve *ValidationError
+	if errors.As(err, &ve) {
+		return len(ve.Violations)
+	}
+	return 0
+}
