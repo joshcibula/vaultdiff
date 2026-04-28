@@ -62,6 +62,15 @@ func TestRedactSecrets_PathTakesPrecedenceOverKey(t *testing.T) {
 	}
 }
 
+func TestRedactSecrets_EmptySecrets(t *testing.T) {
+	secrets := map[string]map[string]string{}
+	opts := RedactOptions{Paths: []string{"secret/sensitive"}, Keys: []string{"token"}}
+	result := RedactSecrets(secrets, opts)
+	if len(result) != 0 {
+		t.Errorf("expected empty result, got %d entries", len(result))
+	}
+}
+
 func TestMatchesAnyPrefix(t *testing.T) {
 	if !matchesAnyPrefix("secret/sensitive/key", []string{"secret/sensitive"}) {
 		t.Error("expected prefix match")
